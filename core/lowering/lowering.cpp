@@ -56,19 +56,19 @@ void LowerGraph(std::shared_ptr<torch::jit::Graph>& g) {
   LOG_GRAPH(*g);
 }
 
-torch::jit::Module LowerModule(const torch::jit::Module& mod, const std::string& method_name, std::unordered_set<std::string> forced_fallback_modules) {
+torch::jit::Module LowerModule(const torch::jit::Module& mod, std::string method_name, std::unordered_set<std::string> forced_fallback_modules) {
   passes::NotateModuleForFallback(mod, "", method_name, forced_fallback_modules);
-  LOG_GRAPH("Post notation pass: " << *mod.get_method(method_name).graph());
+  LOG_GRAPH("After MLF notation pass: " << *mod.get_method(method_name).graph());
   auto mod_ = torch::jit::freeze_module(mod);
-  LOG_GRAPH("Post freeze: " << *mod_.get_method(method_name).graph());
+  LOG_GRAPH("After freeze: " << *mod_.get_method(method_name).graph());
   return mod_;
 }
 
 std::pair<std::shared_ptr<torch::jit::Graph>, std::vector<torch::jit::IValue>> Lower(
     const torch::jit::Module& mod,
     std::string method_name, const LowerInfo& lower_info) {
-    LOG_DEBUG(lower_info);
-    LOG_GRAPH(*mod.get_method(method_name).graph());
+  LOG_DEBUG(lower_info);
+  LOG_GRAPH("Before lowering: " << *mod.get_method(method_name).graph());
   std::unordered_set<std::string> forced_fallback_modules(
       lower_info.forced_fallback_modules.begin(), lower_info.forced_fallback_modules.end());
   auto lowered_mod = LowerModule(mod, method_name, forced_fallback_modules);
